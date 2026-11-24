@@ -1,0 +1,15 @@
+# Afhængigheder og build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Hemmeligheder (.env.example skal med på GitHub)
+.env
+.env.*
+!.env.example
+
+# System og editor
+.DS_Store
+.vscode/
+*.log

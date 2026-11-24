@@ -38,20 +38,20 @@ SKRIVEVEJLEDNING (fjernes inden aflevering)
 
 ![Figur 1: ER-diagram for holdbooking](img/erd.png)
 
-*Figur 1: ER-diagram for holdbooking. Booking er en join-entitet mellem User og Session. Kombinationen (user_id, session_id) er unik, så et medlem ikke kan booke det samme hold to gange, og session.starts_at er indekseret for at gøre datofiltrering hurtig.*
+*Figur 1: ER-diagram for holdbooking. Booking er en join-entitet mellem User og Workshop. Kombinationen (user_id, workshop_id) er unik, så et medlem ikke kan booke det samme hold to gange, og workshops.starts_at er indekseret for at gøre datofiltrering hurtig.*
 
 **Entiteter**
 - User: email unik, password gemmes kun som bcrypt-hash, rolle er enum (admin/member)
-- Session: et hold med tidspunkt, varighed og kapacitet
-- Booking: kobler en user og en session sammen og har sin egen `created_at`
+- Workshop: en workshop eller et kursus med tidspunkt, varighed og kapacitet
+- Booking: kobler en user og en workshop sammen og har sin egen `created_at`
 
 **Relationer**
-- User 1–n Booking og Session 1–n Booking giver tilsammen User n–m Session
+- User 1–n Booking og Workshop 1–n Booking giver tilsammen User n–m Workshop
 - Hvorfor Booking er en rigtig entitet og ikke en ren join-tabel: den har egne data og egne endpoints (book og afmeld)
 
 **Constraints, og hvorfor de ligger i databasen**
 - NOT NULL på fremmednøglerne, så en booking aldrig kan mangle en ejer eller et hold
-- UNIQUE på email og på (user_id, session_id). Databasen er sidste forsvar, også hvis backenden har en fejl.
+- UNIQUE på email og på (user_id, workshop_id). Databasen er sidste forsvar, også hvis backenden har en fejl.
 - ON DELETE CASCADE: sletter man et hold, forsvinder dets bookinger. Alternativet RESTRICT er overvejet. *(begrund valget)*
 
 **Normalisering**
@@ -84,9 +84,9 @@ SKRIVEVEJLEDNING (fjernes inden aflevering)
 
 ## 7. Indexes og query-optimering *(¾ side · skrives 2/12)*
 
-- Index på `session.starts_at` til filteret `?from=&to=`
+- Index på `workshops.starts_at` til filteret `?from=&to=`
 - `EXPLAIN ANALYZE` før og efter med ~10.000 hold: Seq Scan → Index Scan *(figur eller kodeblok)*
-- Den unikke index på (user_id, session_id) dækker også opslag på user_id (`GET /me/bookings`)
+- Den unikke index på (user_id, workshop_id) dækker også opslag på user_id (`GET /me/bookings`)
 - Ulempe ved indexes: langsommere skrivning og mere plads
 
 ## 8. Sikkerhed *(1 side · skrives 3/12)*
@@ -98,14 +98,14 @@ SKRIVEVEJLEDNING (fjernes inden aflevering)
 
 ## 9. Alternativt design: dokumentdatabase (MongoDB) *(1 side · skrives 4/12)*
 
-- Dokumentmodel: users, sessions, bookings
+- Dokumentmodel: users, workshops, bookings
 - Embed eller reference for bookinger? *(begrund)*
 - 3–4 eksempelqueries
 - Hvordan håndteres kapacitet og dobbeltbooking uden fremmednøgler og join?
 
 ## 10. Alternativt design: grafdatabase (Neo4j) *(1 side · skrives 5/12)*
 
-- Noder: `(:User)`, `(:Session)` · relation: `(:User)-[:BOOKED {createdAt}]->(:Session)`
+- Noder: `(:User)`, `(:Workshop)` · relation: `(:User)-[:BOOKED {createdAt}]->(:Workshop)`
 - 3–4 Cypher-queries, inkl. "medlemmer der tog dette hold, tog også …"
 
 ## 11. Sammenligning *(¾ side · skrives 6/12)*
